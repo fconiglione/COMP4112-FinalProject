@@ -42,6 +42,10 @@ def asset_growth(group):
     group['asset_growth'] = group['X10'].pct_change().fillna(0)
     return group
 
+# Feature 6: Getting the debt to asset ratio
+def debt_to_asset_ratio(row):
+    return row['X17'] / row['X10'] if row['X10'] != 0 else 0
+
 # Apply the feature engineering functions
 data['current_assets_ratio'] = data.apply(current_assets_ratio, axis=1)
 data['debt_to_equity_ratio'] = data.apply(debt_to_equity_ratio, axis=1)
@@ -49,6 +53,7 @@ data['return_on_assets'] = data.apply(return_on_assets, axis=1)
 data['net_income_to_profit'] = data.apply(net_income_to_profit, axis=1)
 # Separate each company into a separate group and apply the asset growth function
 data = data.groupby('company_name').apply(asset_growth)
+data['debt_to_asset_ratio'] = data.apply(debt_to_asset_ratio, axis=1)
 
 # Drop the 'company_name' and 'Company Name' columns as they are not useful for modeling
 data.drop(columns=['company_name'], inplace=True)
@@ -123,3 +128,7 @@ print("Logistic Regression test set score: {:.2f}".format(np.mean(pred == npYTes
 confusion_matrix_lr = confusion_matrix(y_test, pred)
 print("Logistic Regression Confusion Matrix:")
 print(confusion_matrix_lr)
+
+# Checking the correlation of the features with the target variable
+correlation_matrix = data.corr()
+print(correlation_matrix['status_label'].sort_values(ascending=False))
