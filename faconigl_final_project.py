@@ -16,49 +16,54 @@ from sklearn.preprocessing import StandardScaler
 # Reading the dataset
 data = pd.read_csv('american_bankruptcy.csv')
 
-# Feature 1: Ratio of Current Assets to Total Assets (Liquidity)
+# Feature 1: Getting the ratio of current assets to total assets (liquidity)
 def current_assets_ratio(row):
     return row['X1'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 2: Debt-to-Equity ratio (financial leverage)
+# Feature 2: Getting the ratio of total liabilities to profit (leverage)
 def debt_to_equity_ratio(row):
     return row['X17'] / row['X15'] if row['X15'] != 0 else 0
 
-# Feature 3: Return on Assets (ROA)
-def roa(row):
+# Feature 3: Getting the return on assets (ROA)
+def return_on_assets(row):
     return row['X6'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 4: Return on Equity (ROE)
-def roe(row):
+# Feature 4: Getting the ratio of net income to profit (profit-to-retained earnings)
+def net_income_to_profit(row):
     return row['X6'] / row['X15'] if row['X15'] != 0 else 0
 
-# Feature 5: Growth of Total Assets (e.g., change in total assets from one year to the next)
-def asset_growth(row, previous_row):
-    return (row['X10'] - previous_row['X10']) / previous_row['X10'] if previous_row['X10'] != 0 else 0
-
-# Feature 7: Interaction between Total Assets and Total Debt (leverage indicator)
-def asset_debt_interaction(row):
-    return row['X10'] * row['X11']
+# Feature 5: Finding the change in assets over time (asset growth)
+def asset_growth(group):
+    group = group.sort_values(by='year') # Order the entire company entries by year for consecutive growth calculation
+    group['asset_growth'] = group['X10'].pct_change().fillna(0)
+    return group
 
 # Apply the feature engineering functions
 data['current_assets_ratio'] = data.apply(current_assets_ratio, axis=1)
-data['debt_to_equity'] = data.apply(debt_to_equity_ratio, axis=1)
-data['roa'] = data.apply(roa, axis=1)
-data['roe'] = data.apply(roe, axis=1)
-
-# Asset growth: Applying it based on previous row, assuming rows are ordered by year
-data['asset_growth'] = data.apply(lambda row: asset_growth(row, data.iloc[data.index.get_loc(row.name)-1] if row.name > 0 else row), axis=1)
-
-data['asset_debt_interaction'] = data.apply(asset_debt_interaction, axis=1)
+data['debt_to_equity_ratio'] = data.apply(debt_to_equity_ratio, axis=1)
+data['return_on_assets'] = data.apply(return_on_assets, axis=1)
+data['net_income_to_profit'] = data.apply(net_income_to_profit, axis=1)
+# Separate each company into a separate group and apply the asset growth function
+data = data.groupby('company_name').apply(asset_growth)
 
 # Drop the 'company_name' and 'Company Name' columns as they are not useful for modeling
 data.drop(columns=['company_name'], inplace=True)
 
 # Define features and target variable
-X = data.drop(columns=["status_label", "year"])  # Features (excluding target and year)
-y = data["status_label"]  # Target
+X = data.drop(columns=["status_label", "year"])  # Exclude target and year
+y = data["status_label"]
 
-# Standardize the features
+# Scaling the data due to the following error:
+"""
+ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+"""
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
@@ -69,28 +74,33 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, 
 classifierKNN = KNeighborsClassifier(n_neighbors=3)
 classifierKNN.fit(X_train, y_train)
 pred = classifierKNN.predict(X_test)
-print("K-Nearest Neighbor Accuracy: {:.2f}".format(np.mean(pred == y_test)))
+npYTest = np.array(y_test)
+print("K-Nearest Neighbor test set score: {:.2f}".format(np.mean(pred == npYTest)))
 
 # Decision Tree Classifier
 classifierDTree = DecisionTreeClassifier(random_state=42)
 classifierDTree.fit(X_train, y_train)
 pred = classifierDTree.predict(X_test)
-print("Decision Tree Accuracy: {:.2f}".format(np.mean(pred == y_test)))
+npYTest = np.array(y_test)
+print("Decision tree test set score: {:.2f}".format(np.mean(pred == npYTest)))
 
 # Random Forest Classifier
 classifierRndForest = RandomForestClassifier(random_state=42)
 classifierRndForest.fit(X_train, y_train)
 pred = classifierRndForest.predict(X_test)
-print("Random Forest Accuracy: {:.2f}".format(np.mean(pred == y_test)))
+npYTest = np.array(y_test)
+print("Random forest test set score: {:.2f}".format(np.mean(pred == npYTest)))
 
 # Naive Bayes Classifier
 classifierNB = GaussianNB()
 classifierNB.fit(X_train, y_train)
 pred = classifierNB.predict(X_test)
-print("Naive Bayes Accuracy: {:.2f}".format(np.mean(pred == y_test)))
+npYTest = np.array(y_test)
+print("Naive Bayes test set score: {:.2f}".format(np.mean(pred == npYTest)))
 
 # Logistic Regression
 classifierLR = LogisticRegression(random_state=42)
 classifierLR.fit(X_train, y_train)
 pred = classifierLR.predict(X_test)
-print("Logistic Regression Accuracy: {:.2f}".format(np.mean(pred == y_test)))
+npYTest = np.array(y_test)
+print("Logistic Regression test set score: {:.2f}".format(np.mean(pred == npYTest)))
