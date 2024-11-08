@@ -46,6 +46,14 @@ def asset_growth(group):
 def debt_to_asset_ratio(row):
     return row['X17'] / row['X10'] if row['X10'] != 0 else 0
 
+# Feature 7: Get net income (X6)
+def net_income(row):
+    return row['X6']
+
+# Feature 8: Get market value (X8)
+def market_value(row):
+    return row['X8']
+
 # Apply the feature engineering functions
 data['current_assets_ratio'] = data.apply(current_assets_ratio, axis=1)
 data['debt_to_equity_ratio'] = data.apply(debt_to_equity_ratio, axis=1)
@@ -54,6 +62,8 @@ data['net_income_to_profit'] = data.apply(net_income_to_profit, axis=1)
 # Separate each company into a separate group and apply the asset growth function
 data = data.groupby('company_name').apply(asset_growth)
 data['debt_to_asset_ratio'] = data.apply(debt_to_asset_ratio, axis=1)
+data['net_income'] = data.apply(net_income, axis=1)
+data['market_value'] = data.apply(market_value, axis=1)
 
 # Drop the 'company_name' and 'Company Name' columns as they are not useful for modeling
 data.drop(columns=['company_name'], inplace=True)
