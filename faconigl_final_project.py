@@ -12,9 +12,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
 
 # Reading the dataset
 data = pd.read_csv('american_bankruptcy.csv')
+
+# Convert the status_label column to binary (alive = 1, failed = 0)
+data["status_label"] = data["status_label"].apply(lambda x: 1 if x == "alive" else 0)
 
 # Feature 1: Getting the ratio of current assets to total assets (liquidity)
 def current_assets_ratio(row):
@@ -50,8 +54,8 @@ data = data.groupby('company_name').apply(asset_growth)
 data.drop(columns=['company_name'], inplace=True)
 
 # Define features and target variable
-X = data.drop(columns=["status_label", "year"])  # Exclude target and year
-y = data["status_label"]
+X = data[['X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'X8', 'X9', 'X10', 'X11', 'X12', 'X13', 'X14', 'X15', 'X16', 'X17', 'X18']] # Selecting the features
+y = data['status_label'] # Target variable is obviously status_label
 
 # Scaling the data due to the following error:
 """
@@ -76,6 +80,9 @@ classifierKNN.fit(X_train, y_train)
 pred = classifierKNN.predict(X_test)
 npYTest = np.array(y_test)
 print("K-Nearest Neighbor test set score: {:.2f}".format(np.mean(pred == npYTest)))
+confusion_matrix_knn = confusion_matrix(y_test, pred)
+print("KNN Confusion Matrix:")
+print(confusion_matrix_knn)
 
 # Decision Tree Classifier
 classifierDTree = DecisionTreeClassifier(random_state=42)
@@ -83,6 +90,9 @@ classifierDTree.fit(X_train, y_train)
 pred = classifierDTree.predict(X_test)
 npYTest = np.array(y_test)
 print("Decision tree test set score: {:.2f}".format(np.mean(pred == npYTest)))
+confusion_matrix_dtree = confusion_matrix(y_test, pred)
+print("Decision Tree Confusion Matrix:")
+print(confusion_matrix_dtree)
 
 # Random Forest Classifier
 classifierRndForest = RandomForestClassifier(random_state=42)
@@ -90,6 +100,9 @@ classifierRndForest.fit(X_train, y_train)
 pred = classifierRndForest.predict(X_test)
 npYTest = np.array(y_test)
 print("Random forest test set score: {:.2f}".format(np.mean(pred == npYTest)))
+confusion_matrix_rndforest = confusion_matrix(y_test, pred)
+print("Random Forest Confusion Matrix:")
+print(confusion_matrix_rndforest)
 
 # Naive Bayes Classifier
 classifierNB = GaussianNB()
@@ -97,6 +110,9 @@ classifierNB.fit(X_train, y_train)
 pred = classifierNB.predict(X_test)
 npYTest = np.array(y_test)
 print("Naive Bayes test set score: {:.2f}".format(np.mean(pred == npYTest)))
+confusion_matrix_nb = confusion_matrix(y_test, pred)
+print("Naive Bayes Confusion Matrix:")
+print(confusion_matrix_nb)
 
 # Logistic Regression
 classifierLR = LogisticRegression(random_state=42)
@@ -104,3 +120,6 @@ classifierLR.fit(X_train, y_train)
 pred = classifierLR.predict(X_test)
 npYTest = np.array(y_test)
 print("Logistic Regression test set score: {:.2f}".format(np.mean(pred == npYTest)))
+confusion_matrix_lr = confusion_matrix(y_test, pred)
+print("Logistic Regression Confusion Matrix:")
+print(confusion_matrix_lr)
