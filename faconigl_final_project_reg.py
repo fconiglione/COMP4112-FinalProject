@@ -12,6 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
+from sklearn.naive_bayes import GaussianNB
 
 # Reading the dataset
 data = pd.read_csv('american_bankruptcy.csv')
@@ -115,6 +116,15 @@ print("K-Nearest Neighbor test set score: {:.2f}".format(np.mean(pred == npYTest
 confusion_matrix_knn = confusion_matrix(y_test, pred)
 print("KNN Confusion Matrix:")
 print(confusion_matrix_knn)
+
+# Gaussian Naive Bayes Classifier
+classifierGNB = GaussianNB()
+classifierGNB.fit(X_train, y_train)
+pred = classifierGNB.predict(X_test)
+print("Gaussian Naive Bayes test set score: {:.2f}".format(np.mean(pred == y_test)))
+confusion_matrix_gnb = confusion_matrix(y_test, pred)
+print("Gaussian Naive Bayes Confusion Matrix:")
+print(confusion_matrix_gnb)
 
 # Decision Tree Classifier
 classifierDTree = DecisionTreeClassifier(random_state=42)
