@@ -5,11 +5,12 @@
 import pandas as pd
 import numpy as np
 
+from imblearn.over_sampling import SMOTE
+
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
@@ -72,26 +73,20 @@ data.drop(columns=['company_name'], inplace=True)
 X = data[['X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'X8', 'X9', 'X10', 'X11', 'X12', 'X13', 'X14', 'X15', 'X16', 'X17', 'X18']] # Selecting the features
 y = data['status_label'] # Target variable is obviously status_label
 
-# Scaling the data due to the following error:
-"""
-ConvergenceWarning: lbfgs failed to converge (status=1):
-STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
-
-Increase the number of iterations (max_iter) or scale the data as shown in:
-    https://scikit-learn.org/stable/modules/preprocessing.html
-Please also refer to the documentation for alternative solver options:
-    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
-  n_iter_i = _check_optimize_result(
-"""
+# Scaling the data
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 # Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
+# Apply SMOTE for oversampling the minority class in the training set
+smote = SMOTE(random_state=42)
+X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+
 # KNN Classifier
 classifierKNN = KNeighborsClassifier(n_neighbors=3)
-classifierKNN.fit(X_train, y_train)
+classifierKNN.fit(X_train_res, y_train_res)
 pred = classifierKNN.predict(X_test)
 npYTest = np.array(y_test)
 print("K-Nearest Neighbor test set score: {:.2f}".format(np.mean(pred == npYTest)))
@@ -101,44 +96,30 @@ print(confusion_matrix_knn)
 
 # Decision Tree Classifier
 classifierDTree = DecisionTreeClassifier(random_state=42)
-classifierDTree.fit(X_train, y_train)
+classifierDTree.fit(X_train_res, y_train_res)
 pred = classifierDTree.predict(X_test)
 npYTest = np.array(y_test)
-print("Decision tree test set score: {:.2f}".format(np.mean(pred == npYTest)))
+print("Decision Tree test set score: {:.2f}".format(np.mean(pred == npYTest)))
 confusion_matrix_dtree = confusion_matrix(y_test, pred)
 print("Decision Tree Confusion Matrix:")
 print(confusion_matrix_dtree)
 
 # Random Forest Classifier
 classifierRndForest = RandomForestClassifier(random_state=42)
-classifierRndForest.fit(X_train, y_train)
+classifierRndForest.fit(X_train_res, y_train_res)
 pred = classifierRndForest.predict(X_test)
 npYTest = np.array(y_test)
-print("Random forest test set score: {:.2f}".format(np.mean(pred == npYTest)))
+print("Random Forest test set score: {:.2f}".format(np.mean(pred == npYTest)))
 confusion_matrix_rndforest = confusion_matrix(y_test, pred)
 print("Random Forest Confusion Matrix:")
 print(confusion_matrix_rndforest)
 
-# Naive Bayes Classifier
-classifierNB = GaussianNB()
-classifierNB.fit(X_train, y_train)
-pred = classifierNB.predict(X_test)
-npYTest = np.array(y_test)
-print("Naive Bayes test set score: {:.2f}".format(np.mean(pred == npYTest)))
-confusion_matrix_nb = confusion_matrix(y_test, pred)
-print("Naive Bayes Confusion Matrix:")
-print(confusion_matrix_nb)
-
 # Logistic Regression
 classifierLR = LogisticRegression(random_state=42)
-classifierLR.fit(X_train, y_train)
+classifierLR.fit(X_train_res, y_train_res)
 pred = classifierLR.predict(X_test)
 npYTest = np.array(y_test)
 print("Logistic Regression test set score: {:.2f}".format(np.mean(pred == npYTest)))
 confusion_matrix_lr = confusion_matrix(y_test, pred)
 print("Logistic Regression Confusion Matrix:")
 print(confusion_matrix_lr)
-
-# Checking the correlation of the features with the target variable
-correlation_matrix = data.corr()
-print(correlation_matrix['status_label'].sort_values(ascending=False))
