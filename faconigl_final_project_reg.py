@@ -25,15 +25,16 @@ def current_assets_ratio(row):
 
 # Feature 2: Getting the ratio of total liabilities to profit (leverage)
 def debt_to_equity_ratio(row):
-    return row['X17'] / row['X15'] if row['X15'] != 0 else 0
+    total_equity = row['X10'] - row['X17']
+    return row['X17'] / total_equity if total_equity != 0 else 0
 
 # Feature 3: Getting the return on assets (ROA)
 def return_on_assets(row):
     return row['X6'] / row['X10'] if row['X10'] != 0 else 0
 
 # Feature 4: Getting the ratio of net income to profit (profit-to-retained earnings)
-def net_income_to_profit(row):
-    return row['X6'] / row['X15'] if row['X15'] != 0 else 0
+def profit_margin(row):
+    return row['X6'] / row['X16'] if row['X16'] != 0 else 0
 
 # Feature 5: Finding the change in assets over time (asset growth)
 def asset_growth(group):
@@ -45,24 +46,41 @@ def asset_growth(group):
 def debt_to_asset_ratio(row):
     return row['X17'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 7: Get net income (X6)
-def net_income(row):
-    return row['X6']
+# Feature 7: Current assets ratio (Current Assets / Current Liabilities)
+def current_ratio(row):
+    return row['X1'] / row['X14'] if row['X14'] != 0 else 0
 
-# Feature 8: Get market value (X8)
-def market_value(row):
-    return row['X8']
+# Feature 8: Quick ratio (Current Assets - Inventory) / Current Liabilities
+def quick_ratio(row):
+    inventory = row['X5']
+    current_assets = row['X1']
+    return (current_assets - inventory) / row['X14'] if row['X14'] != 0 else 0
+
+# Feature 9: Asset turnover ratio (Net Sales / Total Assets)
+def asset_turnover_ratio(row):
+    return row['X9'] / row['X10'] if row['X10'] != 0 else 0
+
+# Feature 10: Interest Coverage Ratio (Debt-Servicing Capacity)
+def interest_coverage_ratio(row):
+    return row['X12'] / row['X4'] if row['X4'] != 0 else 0
+
+# Feature 11: Gross margin
+def gross_margin_ratio(row):
+    return row['X13'] / row['X9'] if row['X9'] != 0 else 0
 
 # Apply the feature engineering functions
 data['current_assets_ratio'] = data.apply(current_assets_ratio, axis=1)
 data['debt_to_equity_ratio'] = data.apply(debt_to_equity_ratio, axis=1)
 data['return_on_assets'] = data.apply(return_on_assets, axis=1)
-data['net_income_to_profit'] = data.apply(net_income_to_profit, axis=1)
+data['profit_margin'] = data.apply(profit_margin, axis=1)
 # Separate each company into a separate group and apply the asset growth function
 data = data.groupby('company_name').apply(asset_growth)
 data['debt_to_asset_ratio'] = data.apply(debt_to_asset_ratio, axis=1)
-data['net_income'] = data.apply(net_income, axis=1)
-data['market_value'] = data.apply(market_value, axis=1)
+data['current_ratio'] = data.apply(current_ratio, axis=1)
+data['quick_ratio'] = data.apply(quick_ratio, axis=1)
+data['asset_turnover_ratio'] = data.apply(asset_turnover_ratio, axis=1)
+data['interest_coverage_ratio'] = data.apply(interest_coverage_ratio, axis=1)
+data['gross_margin_ratio'] = data.apply(gross_margin_ratio, axis=1)
 
 # Drop the 'company_name' and 'Company Name' columns as they are not useful for modeling
 data.drop(columns=['company_name'], inplace=True)
@@ -140,8 +158,6 @@ confusion_matrix_lr = confusion_matrix(y_test, pred)
 print("Logistic Regression Confusion Matrix:")
 print(confusion_matrix_lr)
 
-"""
 # Checking the correlation of the features with the target variable
 correlation_matrix = data.corr()
 print(correlation_matrix['status_label'].sort_values(ascending=False))
-"""
