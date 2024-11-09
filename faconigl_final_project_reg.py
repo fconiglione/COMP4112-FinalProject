@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
 
 # Reading the dataset
 data = pd.read_csv('american_bankruptcy.csv')
@@ -158,6 +159,17 @@ print("Feature Importance:")
 print(feature_importance_df)
 """
 
+# Neural Network Classifier
+classifierNN = MLPClassifier(random_state=42)
+classifierNN.fit(X_train, y_train)
+pred = classifierNN.predict(X_test)
+npYTest = np.array(y_test)
+print("Neural Network test set score: {:.2f}".format(np.mean(pred == npYTest))
+)
+confusion_matrix_nn = confusion_matrix(y_test, pred)
+print("Neural Network Confusion Matrix:")
+print(confusion_matrix_nn)
+
 # Logistic Regression
 classifierLR = LogisticRegression(random_state=42)
 classifierLR.fit(X_train, y_train)
@@ -168,6 +180,8 @@ confusion_matrix_lr = confusion_matrix(y_test, pred)
 print("Logistic Regression Confusion Matrix:")
 print(confusion_matrix_lr)
 
+"""
 # Checking the correlation of the features with the target variable
 correlation_matrix = data.corr()
 print(correlation_matrix['status_label'].sort_values(ascending=False))
+"""
