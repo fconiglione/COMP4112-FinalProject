@@ -5,6 +5,9 @@
 import pandas as pd
 import numpy as np
 
+import seaborn as sns # For visualization: https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea
+import matplotlib.pyplot as plt
+
 from imblearn.under_sampling import RandomUnderSampler
 
 from sklearn.model_selection import train_test_split
@@ -159,3 +162,69 @@ print("Logistic Regression test set score: {:.2f}".format(np.mean(pred == y_test
 confusion_matrix_lr = confusion_matrix(y_test, pred)
 print("Logistic Regression Confusion Matrix:")
 print(confusion_matrix_lr)
+
+# Visualization of the confusion matrices using heat maps
+
+# def plot_confusion_matrix_with_labels(conf_matrix, title):
+#     TN, FP, FN, TP = conf_matrix.ravel()
+
+#     labels = np.array([[f'TN {TN}', f'FP {FP}'], [f'FN {FN}', f'TP {TP}']])
+
+#     plt.figure(figsize=(6, 4))
+#     sns.heatmap(conf_matrix, annot=labels, fmt='', cmap='Blues', cbar=False)
+#     plt.title(title)
+#     plt.ylabel('Actual')
+#     plt.xlabel('Predicted')
+#     plt.show()
+
+# plot_confusion_matrix_with_labels(confusion_matrix_knn, "KNN Confusion Matrix")
+# plot_confusion_matrix_with_labels(confusion_matrix_gnb, "Gaussian Naive Bayes Confusion Matrix")
+# plot_confusion_matrix_with_labels(confusion_matrix_dtree, "Decision Tree Confusion Matrix")
+# plot_confusion_matrix_with_labels(confusion_matrix_rndforest, "Random Forest Confusion Matrix")
+# plot_confusion_matrix_with_labels(confusion_matrix_nn, "Neural Network Confusion Matrix")
+# plot_confusion_matrix_with_labels(confusion_matrix_lr, "Logistic Regression Confusion Matrix")
+
+# Accuracy comparisons using a bar chart
+
+# accuracy_scores = [
+#     np.mean(pred == y_test) for pred in [
+#         classifierKNN.predict(X_test),
+#         classifierGNB.predict(X_test),
+#         classifierDTree.predict(X_test),
+#         classifierRndForest.predict(X_test),
+#         classifierNN.predict(X_test),
+#         classifierLR.predict(X_test)
+#     ]
+# ]
+# classifier_names = ['KNN', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'Neural Network', 'Logistic Regression']
+
+# plt.figure(figsize=(10, 5))
+# sns.barplot(x=classifier_names, y=accuracy_scores)
+# plt.xlabel('Classifiers')
+# plt.ylabel('Accuracy Score')
+# plt.title('Accuracy Comparison of Different Classifiers')
+# plt.ylim(0, 1)
+# plt.show()
+
+# ROC curve
+
+# from sklearn.metrics import roc_curve, auc
+
+# def plot_roc_curve(classifier, X_test, y_test, title):
+#     y_proba = classifier.predict_proba(X_test)[:, 1] if hasattr(classifier, "predict_proba") else classifier.decision_function(X_test)
+#     fpr, tpr, _ = roc_curve(y_test, y_proba)
+#     roc_auc = auc(fpr, tpr)
+#     plt.plot(fpr, tpr, label=f'{title} (AUC = {roc_auc:.2f})')
+#     plt.xlabel('False Positive Rate')
+#     plt.ylabel('True Positive Rate')
+#     plt.title('ROC Curves')
+#     plt.legend(loc='lower right')
+
+# plt.figure(figsize=(10, 7))
+# plot_roc_curve(classifierKNN, X_test, y_test, "KNN")
+# plot_roc_curve(classifierGNB, X_test, y_test, "Naive Bayes")
+# plot_roc_curve(classifierDTree, X_test, y_test, "Decision Tree")
+# plot_roc_curve(classifierRndForest, X_test, y_test, "Random Forest")
+# plot_roc_curve(classifierNN, X_test, y_test, "Neural Network")
+# plot_roc_curve(classifierLR, X_test, y_test, "Logistic Regression")
+# plt.show()
