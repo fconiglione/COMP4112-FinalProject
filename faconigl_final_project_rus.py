@@ -2,10 +2,12 @@
 # Data Science Final Project
 # Francesco Coniglione (st#1206780)
 
+# Imports
+
 import pandas as pd
 import numpy as np
 
-import seaborn as sns # For visualization: https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 from imblearn.under_sampling import RandomUnderSampler
@@ -20,17 +22,18 @@ from sklearn.metrics import confusion_matrix
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 
-# Reading the dataset
-data = pd.read_csv('american_bankruptcy.csv')
+# Reading in the dataset
+file='american_bankruptcy.csv'
+data = pd.read_csv(file)
 
-# Convert the status_label column to binary (alive = 1, failed = 0)
+# Converting the 'status_label' column to binary (alive = 1, failed = 0)
 data["status_label"] = data["status_label"].apply(lambda x: 1 if x == "alive" else 0)
 
-# Feature 1: Getting the ratio of current assets to total assets (liquidity)
+# Feature 1: Getting the ratio of current assets to total assets (known as liquidity)
 def current_assets_ratio(row):
     return row['X1'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 2: Getting the ratio of total liabilities to profit (leverage)
+# Feature 2: Getting the ratio of total liabilities to profit (known as leverage)
 def debt_to_equity_ratio(row):
     total_equity = row['X10'] - row['X17']
     return row['X17'] / total_equity if total_equity != 0 else 0
@@ -39,13 +42,13 @@ def debt_to_equity_ratio(row):
 def return_on_assets(row):
     return row['X6'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 4: Getting the ratio of net income to profit (profit-to-retained earnings)
+# Feature 4: Getting the ratio of net income to profit (known as profit-to-retained earnings)
 def profit_margin(row):
     return row['X6'] / row['X16'] if row['X16'] != 0 else 0
 
-# Feature 5: Finding the change in assets over time (asset growth)
+# Feature 5: Finding the change in assets over time (known as asset growth)
 def asset_growth(group):
-    group = group.sort_values(by='year') # Order the entire company entries by year for consecutive growth calculation
+    group = group.sort_values(by='year') # Ordering the entire company entries by year for consecutive growth calculation
     group['asset_growth'] = group['X10'].pct_change().fillna(0)
     return group
 
@@ -53,34 +56,34 @@ def asset_growth(group):
 def debt_to_asset_ratio(row):
     return row['X17'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 7: Current assets ratio (Current Assets / Current Liabilities)
+# Feature 7: Getting the current assets ratio (Current Assets / Current Liabilities)
 def current_ratio(row):
     return row['X1'] / row['X14'] if row['X14'] != 0 else 0
 
-# Feature 8: Quick ratio (Current Assets - Inventory) / Current Liabilities
+# Feature 8: Getting what is known as the quick ratio (Current Assets - Inventory) / Current Liabilities
 def quick_ratio(row):
     inventory = row['X5']
     current_assets = row['X1']
     return (current_assets - inventory) / row['X14'] if row['X14'] != 0 else 0
 
-# Feature 9: Asset turnover ratio (Net Sales / Total Assets)
+# Feature 9: Getting the asset turnover ratio (Net Sales / Total Assets)
 def asset_turnover_ratio(row):
     return row['X9'] / row['X10'] if row['X10'] != 0 else 0
 
-# Feature 10: Interest Coverage Ratio (Debt-Servicing Capacity)
+# Feature 10: Getting the Interest Coverage Ratio (Debt-Servicing Capacity)
 def interest_coverage_ratio(row):
     return row['X12'] / row['X4'] if row['X4'] != 0 else 0
 
-# Feature 11: Gross margin
+# Feature 11: Getting gross margin
 def gross_margin_ratio(row):
     return row['X13'] / row['X9'] if row['X9'] != 0 else 0
 
-# Apply the feature engineering functions
+# Applying the feature engineering functions
 data['current_assets_ratio'] = data.apply(current_assets_ratio, axis=1)
 data['debt_to_equity_ratio'] = data.apply(debt_to_equity_ratio, axis=1)
 data['return_on_assets'] = data.apply(return_on_assets, axis=1)
 data['profit_margin'] = data.apply(profit_margin, axis=1)
-# Separate each company into a separate group and apply the asset growth function
+# Separateingeach company into a separate group and applying the asset growth function
 data = data.groupby('company_name').apply(asset_growth)
 data['debt_to_asset_ratio'] = data.apply(debt_to_asset_ratio, axis=1)
 data['current_ratio'] = data.apply(current_ratio, axis=1)
@@ -89,14 +92,14 @@ data['asset_turnover_ratio'] = data.apply(asset_turnover_ratio, axis=1)
 data['interest_coverage_ratio'] = data.apply(interest_coverage_ratio, axis=1)
 data['gross_margin_ratio'] = data.apply(gross_margin_ratio, axis=1)
 
-# Drop the 'company_name' and 'Company Name' columns as they are not useful for modeling
+# Dropping the 'company_name' column as they do nothing for the model
 data.drop(columns=['company_name'], inplace=True)
 
-# Define features and target variable
+# Defining features and the target variable
 X = data[['X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'X8', 'X9', 'X10', 'X11', 'X12', 'X13', 'X14', 'X15', 'X16', 'X17', 'X18']] # Selecting the features
 y = data['status_label'] # Target variable is obviously status_label
 
-# Under-sampling the dataset
+# Under-sampling the dataset with RandomUnderSampler
 rus = RandomUnderSampler(random_state=42)
 X_res, y_res = rus.fit_resample(X, y)
 
@@ -228,3 +231,29 @@ print(confusion_matrix_lr)
 # plot_roc_curve(classifierNN, X_test, y_test, "Neural Network")
 # plot_roc_curve(classifierLR, X_test, y_test, "Logistic Regression")
 # plt.show()
+
+"""
+References
+
+https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
+https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
+https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.GaussianNB.html
+https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html
+https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
+https://scikit-learn.org/stable/modules/generated/sklearn.metrics.auc.html
+https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
+https://scikit-learn.org/stable/modules/generated/sklearn.metrics.ConfusionMatrixDisplay.html
+https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea
+https://forecastegy.com/posts/feature-importance-in-random-forests/
+https://scikit-learn.org/stable/modules/preprocessing.html
+https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+
+For random under-sampling:
+https://medium.com/@salmimabrouka7/sampling-for-imbalanced-data-in-python-20fc995361db#:~:text=Random%20Undersampling%20(RUS)%20works%20by,instances%20in%20the%20majority%20class
+
+Code snippets were sourced from COMP 4112 lecture slides, assignment code, and the k-means-clustering-visual.py example file.
+"""
