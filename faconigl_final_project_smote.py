@@ -1,6 +1,7 @@
 # COMP 4112 Introduction to Data Science
 # Data Science Final Project
 # Francesco Coniglione (st#1206780)
+# Note: Some code has been commented out to avoid overwhelming the terminal with output. Uncomment the code to see the output.
 
 # Imports
 
